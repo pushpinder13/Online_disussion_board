@@ -1,12 +1,6 @@
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
-
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your-secret-key', {
-    expiresIn: '7d'
-  });
-};
+const setTokenCookie = require('../utils/generateToken');
 
 exports.register = async (req, res) => {
   try {
@@ -30,7 +24,7 @@ exports.register = async (req, res) => {
     const user = new User({ username, email, password });
     await user.save();
 
-    const token = generateToken(user._id);
+    const token = setTokenCookie(user._id, res);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -61,7 +55,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = generateToken(user._id);
+    const token = setTokenCookie(user._id, res);
     
     res.json({
       message: 'Login successful',

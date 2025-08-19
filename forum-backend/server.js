@@ -85,6 +85,7 @@ const passport = require("passport");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 
 // Load environment variables
 dotenv.config();
@@ -96,6 +97,7 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet()); // security headers
 app.use(morgan("dev")); // request logging
+app.use(cookieParser()); // parse cookies for JWT
 app.use(passport.initialize());
 
 // Rate Limiting (basic: 100 requests / 15 min per IP)

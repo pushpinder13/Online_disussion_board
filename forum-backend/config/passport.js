@@ -44,19 +44,29 @@
 // }));
 
 const { Strategy: JwtStrategy, ExtractJwt } = require("passport-jwt");
-const mongoose = require("mongoose");
 const User = require("../models/User");
 
-
-const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.JWT_SECRET;
+const cookieExtractor = (req) => {
+  let token = null;
+  if (req && req.cookies) {
+    token = req.cookies.token;
+  }
+  return token;
+};
 
 module.exports = function (passport) {
+  const opts = {};
+  opts.jwtFromRequest = ExtractJwt.fromExtractors([
+    cookieExtractor,
+    ExtractJwt.fromAuthHeaderAsBearerToken(),
+  ]);
+  opts.secretOrKey = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
+
   passport.use(
     new JwtStrategy(opts, async (jwt_payload, done) => {
       try {
-        const user = await User.findById(jwt_payload.id);
+        const id = jwt_payload.id || jwt_payload.userId;
+        const user = await User.findById(id).select('-password');
         if (user) {
           return done(null, user);
         }

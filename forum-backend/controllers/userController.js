@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const jwt = require('jsonwebtoken');
+const setTokenCookie = require('../utils/generateToken');
 const User = require('../models/User');
 const Thread = require('../models/Threads');
 
@@ -71,11 +71,7 @@ exports.login = async (req, res) => {
     if (!user) return res.status(400).json({ message: 'Invalid email or password' });
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = setTokenCookie(user._id, res);
     res.json({ message: 'Login successful', token });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
